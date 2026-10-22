@@ -1,0 +1,41 @@
+---
+title: "备份与恢复"
+description: "PostgreSQL 与文件卷的备份、恢复与验证"
+sidebarTitle: "备份与恢复"
+icon: "floppy-disk"
+---
+
+备份是宿主机运维动作，不是应用内功能。详细流程、灾难恢复与 cron 见 [docs/deploy/backup-restore.md](https://github.com/KeroroC/zija/blob/main/docs/deploy/backup-restore.md)。
+
+## 常用命令
+
+```bash
+make backup-test      # 快照当前运行栈到 ./backups/
+make restore-smoke    # 用最近备份恢复临时空栈并验证
+```
+
+`make backup-test` 把 PostgreSQL 转储与文件存储打包到 `ZIJA_BACKUP_DIR`（默认 `./backups/`）。`make restore-smoke` 在临时卷上恢复并做完整性检查。
+
+## 备份包含什么
+
+在单一**备份批次标识**下捕获：
+
+- PostgreSQL `pg_dump`
+- 文件卷镜像（含回收站内尚未物理删除的附件）
+- 清单：schema 版本、应用版本、文件清单与每文件 SHA256、db 段校验和
+
+CSV 导出是数据携带，不是完整备份。
+
+## 恢复原则
+
+向**空环境**（空 PostgreSQL 数据卷、空文件卷）还原一份备份，再由应用启动时 Flyway 校验/前向迁移，最后跑一致性检查。
+
+## 所有者恢复
+
+忘记密码或账户锁定时（Compose 栈运行中）：
+
+```bash
+make recover-owner
+```
+
+在容器内以非 Web 模式输出一次性恢复链接（`/owner-recovery#token=...`，约 15 分钟有效），访问后重置密码，旧会话立即失效。

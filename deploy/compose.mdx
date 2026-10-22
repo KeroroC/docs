@@ -1,0 +1,64 @@
+---
+title: "Docker Compose"
+description: "家庭服务器 / NAS 上的 Docker Compose 私有部署"
+sidebarTitle: "Docker Compose"
+icon: "docker"
+---
+
+适合家庭服务器 / NAS 长期托管。完整配置、TLS 模板与常见问题见仓库 [docs/deploy/deploy.md](https://github.com/KeroroC/zija/blob/main/docs/deploy/deploy.md)。
+
+## 硬件建议
+
+- CPU 2 核+
+- 内存 4 GB+（同机跑 Ollama 时按模型另计）
+- 磁盘 20 GB+（数据库 + 文件存储）
+
+## 部署步骤
+
+```bash
+git clone https://github.com/KeroroC/zija.git
+cd zija
+cp .env.example .env
+# 至少修改 ZIJA_POSTGRES_PASSWORD / ZIJA_DB_PASSWORD，并设 ZIJA_PROFILES_ACTIVE=prod
+docker compose --env-file .env up -d --build
+docker compose ps
+```
+
+三个服务应均为 `healthy`。
+
+## 必读配置
+
+| 变量 | 说明 |
+|---|---|
+| `ZIJA_PROFILES_ACTIVE=prod` | 生产必须设置；关闭 Swagger；会话 Cookie 的 Secure 由传输层决定 |
+| `ZIJA_POSTGRES_PASSWORD` / `ZIJA_DB_PASSWORD` | 强随机且保持一致 |
+| `ZIJA_DB_URL` | 使用 Compose 服务名 `postgres:5432`，不要改 |
+| `ZIJA_AI_*`（可选） | 指向可达的 Ollama；未配置时核心业务仍可用 |
+| `ZIJA_SETUP_TOKEN` | `prod` 下必须配置，用于首次引导 |
+
+## TLS 反向代理
+
+知家应用本身不终止 TLS。在前面部署 Nginx / Caddy / Traefik，并透传 `X-Forwarded-Proto: https`、下发 HSTS。模板见 [deploy.md §5](https://github.com/KeroroC/zija/blob/main/docs/deploy/deploy.md)。
+
+## 数据持久化
+
+| 卷名 | 容器内路径 | 用途 |
+|---|---|---|
+| `postgres-data` | `/var/lib/postgresql/data` | PostgreSQL |
+| `zija-files` | `/var/lib/zija/files` | 用户上传文件 |
+
+可用绑定挂载改到宿主机目录以便备份。
+
+## 升级
+
+```bash
+git pull
+docker compose --env-file .env up -d --build
+```
+
+数据库迁移由 Flyway 在应用启动时自动应用。
+
+## 相关
+
+- [备份与恢复](/deploy/backup)
+- [故障排除](https://github.com/KeroroC/zija/blob/main/docs/deploy/troubleshooting.md)（仓库）

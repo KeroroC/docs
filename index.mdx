@@ -1,0 +1,55 @@
+---
+title: "介绍"
+description: "知家 · zija：面向单个家庭的私有化物品与库存管理"
+sidebarTitle: "介绍"
+---
+
+知家是面向**单个家庭、多位成员**的私有化物品与库存管理系统。记录日常耐用品与消耗品的批次、位置与库存数量，所有变更以不可变流水作为事实来源，支持盘点、过期提醒、附件、报表与 CSV 导出，以及可选的家庭问答（本地 Ollama + pgvector）。
+
+## 适合谁
+
+- 希望把家庭物资、保质期与存放位置记清楚的家庭用户
+- 想在家里的 NAS / 服务器上长期托管，数据不出门的运维者
+- 不想自建服务器、使用腾讯云 CloudBase 云托管的用户
+- 希望阅读或扩展源码的开发者
+
+## 核心能力
+
+<CardGroup cols={2}>
+  <Card title="不可变流水" icon="list-check">
+    入库、领用、报损、盘点调整、移位与冲正都以流水为事实来源；库存位由流水派生。
+  </Card>
+
+  <Card title="批次与位置" icon="boxes-stacked">
+    物品描述「是什么」；批次描述某次购入或独立资产；库存位落在具体位置上。
+  </Card>
+
+  <Card title="附件与提醒" icon="bell">
+    附件可挂在家庭 / 物品 / 批次；最低库存与过期等提醒由后台扫描触发。
+  </Card>
+
+  <Card title="可选 AI" icon="sparkles">
+    家庭问答只读，须带回答依据。未配置 Ollama 时，库存与附件等核心业务仍可用。
+  </Card>
+</CardGroup>
+
+## 部署一览
+
+| 场景 | 方式 | 适合谁 |
+| --- | --- | --- |
+| 本机开发与调试 | [快速开始](/quickstart) | 开发者和贡献者 |
+| 家庭服务器 / NAS | [Docker Compose](/deploy/compose) | 希望数据留在自己的机器上 |
+| 不想维护服务器 | [CloudBase 云托管](/deploy/cloudbase) | 只要一个稳定的家用实例 |
+
+## 技术要点
+
+- 模块化单体（Spring Modulith），含 `shared` 与 `ai` 等模块
+- 单机 Docker Compose：PostgreSQL 17 + pgvector
+- 单容器腾讯云 CloudBase 云托管，免自建服务器
+- 备份、恢复，以及所有者账户恢复
+
+源码与完整仓库文档：[github.com/KeroroC/zija](https://github.com/KeroroC/zija)（以 `main` 为准）。
+
+<Tip>
+  领域术语以仓库 [`CONTEXT.md`](https://github.com/KeroroC/zija/blob/main/CONTEXT.md) 为准；本站点只摘录面向用户与运维的要点。
+</Tip>

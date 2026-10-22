@@ -1,0 +1,41 @@
+---
+title: "首次使用与成员"
+description: "家庭初始化、登录会话、邀请成员与所有者恢复"
+sidebarTitle: "首次使用与成员"
+icon: "user-plus"
+---
+
+## 家庭初始化
+
+第一次访问任意部署方式启动的实例，浏览器会跳转到 `/bootstrap`：
+
+1. 填写家庭名称、所有者用户名、密码、显示名
+2. 若配置了 `ZIJA_SETUP_TOKEN`，还需填写「初始化口令」
+3. 提交后自动登录并进入首页
+
+<Warning>
+  `prod` profile 下必须配置 `ZIJA_SETUP_TOKEN`。引导接口在系统未初始化时开放，初始化后由业务层拒绝重复创建。
+</Warning>
+
+## 登录与会话
+
+- 登录页：`/login`
+- 会话 Cookie：`ZIJA_SESSION`（HttpOnly、SameSite=Lax；Secure 跟随传输层，TLS 反代透传 `X-Forwarded-Proto: https` 后自动带 Secure）
+- 密码修改后，当前账户全部会话失效，需重新登录
+
+## 邀请成员
+
+1. 以 Owner / Admin 登录 →「成员管理」
+2. 「创建邀请」→ 选择角色与有效期
+3. 复制一次性链接（Token 在 URL fragment 内，不进入 Nginx 访问日志）
+4. 受邀人打开链接完成账户创建并自动登录
+
+## 所有者恢复
+
+Compose 栈运行时：
+
+```bash
+make recover-owner
+```
+
+终端输出一次性恢复链接，约 15 分钟有效；重置后旧会话立即失效。详见 [备份与恢复](/deploy/backup)。

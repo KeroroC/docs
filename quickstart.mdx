@@ -1,0 +1,80 @@
+---
+title: "快速开始"
+description: "本地开发或 Docker Compose 最短路径跑起知家"
+---
+
+按场景选一条路径。三种部署的完整说明见 [Compose](/deploy/compose) 与 [CloudBase](/deploy/cloudbase)。
+
+## 前置条件
+
+| 路径 | 需要 |
+| --- | --- |
+| 本地开发 | JDK 25、Node.js ≥ 24、Docker Engine（含 Compose v2） |
+| Compose 私有部署 | Linux 主机 + Docker Engine 24+ |
+| CloudBase | 已开通云托管（CloudRun）的腾讯云环境 |
+
+可选：本机 [Ollama](https://ollama.com/) 与默认模型（见仓库 `.env.example` 中 `ZIJA_AI_*`）。未配置不影响核心业务。
+
+## 路径 A：本地开发
+
+<Steps>
+  <Step title="准备环境">
+    ```bash
+    git clone https://github.com/KeroroC/zija.git
+    cd zija
+    cp .env.example .env
+    npm --prefix frontend install
+    npm --prefix frontend exec -- playwright install chromium
+    ```
+  </Step>
+  <Step title="启动数据库">
+    ```bash
+    make dev-db
+    ```
+
+    使用 Compose 命名卷 `postgres-data`。本机调试不要和长期部署共用同一份库。
+  </Step>
+  <Step title="启动前后端">
+    两个终端分别执行：
+
+    ```bash
+    make dev-backend    # 后端，端口 8080
+    make dev-frontend   # 前端，端口 5173
+    ```
+
+    浏览器打开前端地址（本机 `localhost:5173`），首次访问进入家庭初始化。
+  </Step>
+</Steps>
+
+## 路径 B：Docker Compose（家庭服务器）
+
+<Steps>
+  <Step title="克隆并配置">
+    ```bash
+    git clone https://github.com/KeroroC/zija.git
+    cd zija
+    cp .env.example .env
+    ```
+
+    至少修改：`ZIJA_POSTGRES_PASSWORD` / `ZIJA_DB_PASSWORD`（强随机且一致），以及 `ZIJA_PROFILES_ACTIVE=prod`。
+  </Step>
+  <Step title="构建并启动">
+    ```bash
+    docker compose --env-file .env up -d --build
+    docker compose ps   # 三个服务应均为 healthy
+    ```
+  </Step>
+  <Step title="完成引导">
+    访问实例后进入 `/bootstrap`，创建家庭与所有者账户。详见 [首次使用](/guide/bootstrap)。
+  </Step>
+</Steps>
+
+## 路径 C：CloudBase
+
+单容器内跑 PostgreSQL + Spring Boot + nginx + 前端静态资源，前后端同源。镜像必须是 **linux/amd64**。步骤摘要见 [CloudBase 云托管](/deploy/cloudbase)；完整说明在仓库 [docs/deploy/cloudbase.md](https://github.com/KeroroC/zija/blob/main/docs/deploy/cloudbase.md)。
+
+## 下一步
+
+- [首次使用与成员](/guide/bootstrap)
+- [核心概念](/guide/core-concepts)
+- [备份与恢复](/deploy/backup)

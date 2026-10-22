@@ -1,0 +1,54 @@
+---
+title: "CloudBase 云托管"
+description: "腾讯云 CloudBase 单容器云托管"
+sidebarTitle: "CloudBase"
+icon: "cloud"
+---
+
+适合不想自己运维的家庭用户：单个 CloudRun 容器内同时运行 PostgreSQL + Spring Boot + nginx + 前端静态资源，**前后端同源同域**，无需外部数据库 / VPC / CORS。
+
+完整说明：[docs/deploy/cloudbase.md](https://github.com/KeroroC/zija/blob/main/docs/deploy/cloudbase.md)。
+
+## 特点
+
+- nginx 监听 8080，静态资源与 `/api` 反代到同容器后端 `127.0.0.1:8081`
+- 部署文件：`deploy/cloudbase/`（`default.conf`、`entrypoint.sh`），多阶段 Dockerfile 为仓库根 `Dockerfile.cloudbase`
+- 数据库在容器内（`127.0.0.1:5432`）
+
+## 镜像必须是 linux/amd64
+
+CloudBase 节点是 amd64。在 Apple Silicon 上直接 `docker build` 会产出 arm64，导致 `ImagePullBackOff`。
+
+- **方式 A（推荐）**：云端构建，把源码交给 CloudBase
+- **方式 B**：本地交叉构建 `docker buildx build --platform linux/amd64 ...`（Apple Silicon 走 QEMU，单次约 20–40 分钟）
+
+## 服务配置摘要
+
+- 构建上下文 = 仓库根目录
+- Dockerfile = `Dockerfile.cloudbase`
+- 服务端口 = 8080
+- 规格参考：CPU 1 / 内存 2 GB / 最小实例 1 / 最大实例 3
+
+环境变量（不含 Ollama；容器内无模型时家庭问答不可用，库存与附件不受影响）：
+
+```text
+ZIJA_DB_URL=jdbc:postgresql://127.0.0.1:5432/zija
+ZIJA_DB_USERNAME=postgres
+ZIJA_DB_PASSWORD=postgres
+ZIJA_DB_NAME=zija
+ZIJA_VERSION=cloudbase
+ZIJA_FILE_STORAGE_PATH=/var/lib/zija/files
+MANAGEMENT_HEALTH_MAIL_ENABLED=false
+```
+
+部署后访问公网域名，跳转 `/bootstrap` 完成家庭初始化。
+
+## 数据持久化注意
+
+| 情况 | 数据 |
+|---|---|
+| 重新部署 / 发新镜像 | 实例磁盘保留，一般不丢 |
+| 平台新建实例（回收、缩容到 0 再拉起等） | 新实例全新镜像，**会丢** |
+| 环境被删除 | 服务与数据一并消失 |
+
+对抗后两种情况：在 `VolumesConf` 把 CFS 挂到 `/var/lib/zija/postgresql/data` 与 `/var/lib/zija/files`。

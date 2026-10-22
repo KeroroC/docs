@@ -1,0 +1,85 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "知家 · zija",
+  "colors": {
+    "primary": "#0F766E",
+    "light": "#14B8A6",
+    "dark": "#0D9488"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "pages": [
+      {
+        "group": "开始",
+        "pages": [
+          "index",
+          "quickstart"
+        ]
+      },
+      {
+        "group": "部署",
+        "icon": "server",
+        "pages": [
+          "deploy/compose",
+          "deploy/cloudbase",
+          "deploy/backup"
+        ]
+      },
+      {
+        "group": "使用指南",
+        "icon": "book",
+        "pages": [
+          "guide/bootstrap",
+          "guide/core-concepts"
+        ]
+      },
+      {
+        "group": "开发者",
+        "icon": "code",
+        "pages": [
+          "developer/overview",
+          "developer/architecture"
+        ]
+      },
+      {
+        "group": "参考",
+        "icon": "bookmark",
+        "pages": [
+          "reference/ai",
+          "reference/adr"
+        ]
+      }
+    ]
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "href": "https://github.com/KeroroC/zija",
+        "label": "GitHub"
+      }
+    ]
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/KeroroC/zija"
+    }
+  },
+  "description": "面向单个家庭的私有化物品与库存管理系统文档"
+}

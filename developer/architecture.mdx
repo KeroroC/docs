@@ -1,0 +1,46 @@
+---
+title: "架构概览"
+description: "Spring Modulith 模块划分与库存模型"
+sidebarTitle: "架构概览"
+icon: "sitemap"
+---
+
+知家后端采用 **Spring Modulith** 模块化单体：按业务能力划分模块，每个模块有独立公共 `Api` 与 `internal` 实现。原文：[architecture.md](https://github.com/KeroroC/zija/blob/main/docs/developer/architecture.md)。
+
+## 模块清单
+
+| 模块 | 职责 |
+|---|---|
+| `system` | 健康检查、安装信息、审计日志查询 |
+| `identity` | 认证、用户与会话 |
+| `household` | 家庭、引导、邀请 |
+| `catalog` | 品牌、单位、分类、标签 |
+| `location` | 存储位置 |
+| `file` | 文件存储与完整性 |
+| `inventory` | 批次、库存位、流水、盘点、幂等与一致性 |
+| `reminder` | 提醒规则、通知、邮件摘要 |
+| `reporting` | 读模型投影、报表、CSV 导出 |
+| `ai` | 模型提供方、设置与状态、向量检索基线 |
+
+包结构形如 `com.zija.<module>`：公共 `*Api` + `internal/`。跨模块只依赖公共接口与公开 DTO；`ModularityTests` 自动校验依赖方向。
+
+## 库存模型
+
+「不可变流水 + 派生库存位」：
+
+- **物品** → 是什么
+- **批次** → 某次购入 / 独立资产
+- **库存位** → 某批次在某位置的当前数量
+- **流水** → 事实来源（入库 / 领用 / 报损 / 盘点调整 / 移位 / 冲正）
+
+## 事件与投影
+
+`inventory` / `reminder` 发布公开领域事件；`reporting` 订阅后写入投影表（如 `reporting_stock_flat`、`reporting_movement_flat`、`reporting_search_index`）。事件字段只能追加，不可重排或删除。
+
+## 持久化要点
+
+- 简单 CRUD：MyBatis-Plus；复杂查询：自定义 Mapper XML
+- 元数据实体乐观锁；库存扣减用 `SELECT ... FOR UPDATE`
+- UUID 主键；无全局逻辑删除，禁用/归档用显式业务状态
+
+更多决策见 [ADR 索引](/reference/adr)。

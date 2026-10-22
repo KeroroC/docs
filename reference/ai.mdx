@@ -1,0 +1,44 @@
+---
+title: "AI 能力边界"
+description: "家庭问答只读边界、知识来源与本地优先"
+sidebarTitle: "AI 能力边界"
+icon: "sparkles"
+---
+
+AI 是核心业务的**可选增强**。未配置模型或暂时不可用时，库存、附件等既有流程必须继续工作。规格全文：[ai-capabilities-spec.md](https://github.com/KeroroC/zija/blob/main/docs/design/ai-capabilities-spec.md)。
+
+## 能做什么
+
+1. **家庭事实问答**：物品、批次、库存位、流水、位置、提醒（只读）
+2. **知识来源问答**：成员显式选定的附件（首期需可提取文字的 PDF / Markdown / TXT / DOCX / XLSX / PPTX）
+
+## 明确不做（首期）
+
+- 任何库存、物品、提醒或附件**写入**
+- 成员隐私、审计日志、系统配置问答
+- 扫描件 / 图片 OCR
+- 通用知识补答、联网搜索
+- 服务端长期对话历史
+- 用户按问题切换模型提供方
+
+## 回答依据
+
+每个回答须标明来源：家庭事实注明数据来源与查询时间；知识来源注明附件与可定位位置。缺少可靠依据时必须说明不知道或无法确认，**不使用模型常识或联网补答**。
+
+## 本地优先
+
+- 默认不向外部发送家庭内容；Owner/Admin 可配置外部提供方
+- 开发基线：Ollama `qwen2.5:7b`（聊天）+ `qwen3-embedding:0.6b`（embedding，**1024 维**）
+- 技术基座：Spring AI + PostgreSQL pgvector（向量表由 Flyway 管理）
+
+## 知识来源范围
+
+| 挂载点 | 可检索范围 |
+|---|---|
+| 家庭 | 全家庭问题 |
+| 物品 | 该物品及其批次 |
+| 批次 | 该批次 |
+
+附件进入回收站后立即失去知识来源资格；恢复后须重新准备。
+
+相关 ADR：[020](https://github.com/KeroroC/zija/blob/main/docs/adr/020-ai-readonly-boundary-and-answer-grounding.md)、[021](https://github.com/KeroroC/zija/blob/main/docs/adr/021-ai-local-first-and-configurable-provider.md)、[025](https://github.com/KeroroC/zija/blob/main/docs/adr/025-spring-ai-and-pgvector-for-ai-capability.md)、[026](https://github.com/KeroroC/zija/blob/main/docs/adr/026-qwen3-embedding-1024-baseline.md)。

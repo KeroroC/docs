@@ -1,0 +1,57 @@
+---
+title: "开发概览"
+description: "技术栈、环境变量、测试与 CI"
+sidebarTitle: "开发概览"
+icon: "terminal"
+---
+
+完整开发者指南：[docs/developer/developers.md](https://github.com/KeroroC/zija/blob/main/docs/developer/developers.md)。协作约定见 [CLAUDE.md](https://github.com/KeroroC/zija/blob/main/CLAUDE.md)。
+
+## 技术栈
+
+- **后端：** Java 25、Spring Boot 4.1.x、Spring Modulith 2.0.5、MyBatis-Plus、Flyway、PostgreSQL 17 + pgvector
+- **前端：** Vue 3、TypeScript、Vite 7、Vue Router 4、Pinia 3、Element Plus、Vitest、Playwright
+- **基础设施：** Docker Compose（postgres + app + web/nginx）、Maven Wrapper、npm
+
+## 环境变量（名称）
+
+配置通过 `ZIJA_` 前缀环境变量设置，完整列表见仓库 `.env.example`。常用：
+
+| 变量 | 用途 |
+|---|---|
+| `ZIJA_DB_URL` / `ZIJA_DB_USERNAME` / `ZIJA_DB_PASSWORD` | 数据库连接 |
+| `ZIJA_PROFILES_ACTIVE` | 生产须为 `prod` |
+| `ZIJA_FILE_STORAGE_PATH` | 上传文件目录 |
+| `ZIJA_BACKUP_DIR` | 备份产物宿主机目录 |
+| `ZIJA_SMTP_*` | 邮件；不配置则邮件提醒静默禁用 |
+| `ZIJA_AI_OLLAMA_BASE_URL` / `ZIJA_AI_CHAT_MODEL` / `ZIJA_AI_EMBEDDING_MODEL` | 可选本地 Ollama |
+
+AI 提供方凭据由 Owner/Admin 在「家庭设置 → AI 能力」写入；API 只返回 `credentialConfigured`，不回显原值。
+
+## 测试
+
+```bash
+# 后端
+cd backend && ./mvnw -q test
+
+# 前端
+npm --prefix frontend test
+npm --prefix frontend run typecheck
+npm --prefix frontend run test:e2e   # 需运行中的栈
+
+# 仓库级
+make verify           # 布局 + 测试 + 生产构建 + git diff --check
+make compose-smoke    # Compose 全栈健康检查（结束清理临时卷）
+make e2e-smoke        # Playwright 烟雾
+```
+
+集成测试共用 JVM 级 PostgreSQL（`SharedPostgres`）。守护测试包括模块边界 `ModularityTests`、表覆盖 `TestDbTableCoverageTest` 等。
+
+## 分支与 CI
+
+开发在 `dev`，合并到 `main` 即发布。`dev` 跑后端 `mvnw verify` 与前端测试/构建；Compose + Playwright 部署烟雾仅在 `main` 的 push 或以 `main` 为目标的 PR 上运行。工作流：`.github/workflows/ci.yml`。
+
+## 代码风格
+
+- Java 4 空格；Vue/TS 2 空格；LF、UTF-8、文件末尾换行（`.editorconfig`）
+- 提交信息：主体中文，前缀保留英文（`fix:` / `feat:` / `chore:` 等）
